@@ -26,11 +26,27 @@ country_col <- WorldCities$country
 ```
 
 Countries from sample dataset [ `r unique(country_col)` ]. Different regions that these countries belong to are :
+
 #Tidy way
 ```{r}
 WorldCities %>% select(region) %>% unique()
 ```
 
+A different version to select countries is:
+```{r}
+WorldCities %>% select(country) %>% unique()
+```
+
+#Histogtam
+```{r}
+WorldCities %>% ggplot(aes(x = population)) +
+geom_histogram() +
+xlab('City population')
+```
 
 
-
+# My Histogram using "classic dark-on-light ggplot2 theme"
+```{r}
+WorldCities %>% ggplot(aes(x = population)) +geom_histogram() +
+  theme_bw() + xlab('population') + ylab('the count') + ggtitle('classic dark-on-light ggplot2 theme')
+```
