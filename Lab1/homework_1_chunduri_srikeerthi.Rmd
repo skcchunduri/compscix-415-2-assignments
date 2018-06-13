@@ -1,7 +1,7 @@
 ---
 title: "COMPSCIX 415.2 Homework 1"
 author: "Chunduri SriKeerthi Chandra"
-date: "6/12/2018"
+date: "Jun 12th 2018"
 output: html_document
 ---
 
@@ -18,6 +18,9 @@ library(tidyverse)
 data("WorldCities")
 ```
 
+#### QUESTION 1: How many observations and variables are there in this data set? What are
+#### some of the variable names? Type up your answer in your document using complete sentences.
+
 WorldCities dataset captures **`r nrow(WorldCities)`** observations made for **`r ncol(WorldCities)`** variables ( `r names(WorldCities)` ). These variables capture different aspects of each city that help locate the city and know its population.
 
 ```{r}
@@ -27,26 +30,33 @@ country_col <- WorldCities$country
 
 Countries from sample dataset [ `r unique(country_col)` ]. Different regions that these countries belong to are :
 
-#Tidy way
+#### QUESTION 2: There is a column called region in the data set. Can you extract this and show
+#### only the unique values?
+
 ```{r}
 WorldCities %>% select(region) %>% unique()
 ```
+
+#### QUESTION 3: Can you extract and show the unique entries from the country column in
+#### WorldCities using one line of code and two %>% operators?
 
 A different version to select countries is:
 ```{r}
 WorldCities %>% select(country) %>% unique()
 ```
 
-#Histogtam
+### Histogtam
 ```{r}
 WorldCities %>% ggplot(aes(x = population)) +
 geom_histogram() +
 xlab('City population')
 ```
 
+#### QUESTION 4: Make one more histogram of the population and add a new x-label, a new ylabel,
+#### a new title (use ggtitle('my title')), and change the theme of the plot using theme_bw().
 
-# My Histogram using "classic dark-on-light ggplot2 theme"
+My Histogram using "classic dark-on-light ggplot2 theme"
 ```{r}
 WorldCities %>% ggplot(aes(x = population)) +geom_histogram() +
-  theme_bw() + xlab('population') + ylab('the count') + ggtitle('classic dark-on-light ggplot2 theme')
+  theme_bw() + xlab('population') + ylab('frequency') + ggtitle('classic dark-on-light ggplot2 theme')
 ```
