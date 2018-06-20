@@ -1,0 +1,242 @@
+---
+title: "COMPSCIX 415.2 Homework 2"
+author: "Chunduri SriKeerthi Chandra"
+date: "Jun 19th 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r initilize, include=FALSE}
+library(tidyverse)
+data(mpg)
+```
+
+##**Data Visualisation using ggplot2**
+
+###3.2.4 Exercises
+
+*Q: Run ggplot(data = mpg). What do you see?*
+
+ggplot() prepares the co-ordinate system for *mpg* data frame. It doesn't plot any geomentric data to show the raw data contained in the data frame.
+
+```{r}
+ggplot(data=mpg) + ggtitle('base co-ordinate system')
+```
+
+***Q:** How many rows are in mpg? How many columns?*
+
+mpg data-frame  captures has **`r ncol(mpg)`** variables and **`r nrow(mpg)`** observations.
+
+***Q:** What does the drv variable describe? Read the help for ?mpg to find out.*
+
+**drv** variable describes the drivetrain of a car, it is the set of components that deliver power to the wheels. **drv** is a categorical variable with values  
+1. f= front-wheel drive
+2. r = rear wheel drive
+3. 4 = 4wd
+
+***Q:** Make a scatterplot of hwy vs cyl*
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = hwy, y = cyl)) + labs(title = "Scatterplot of cyl vs hwy")
+```
+
+The scatterplot of hwy vs cyl shows that they are inversely proportional.
+
+***Q:** What happens if you make a scatterplot of class vs drv? Why is the plot not useful?*
+
+Both vehicle class and drivetrain are categorical variables and hence doesn't give much insight.
+
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = class, y = drv)) + labs(title = "Scatterplot of class vs drv")
+```
+
+###3.3.1 Exercises
+
+***Q:** What’s gone wrong with this code? Why are the points not blue?*
+
+The 'color' aesthetic inside *aes()* must be associated with a variable. In this example, ggplot2 assumes the variable has one unique value and hence assigns a unique color and adds a legend to explain the same.
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+***Q:** Which variables in mpg are categorical? Which variables are continuous? How can you see this information when you run mpg?*
+
+* Categorical variables in mpg  
+    + manufacturer
+    + model
+    + trans
+    + fl
+    + class
+* Continuous varuables in mpg  
+    + displ
+    + year
+    + cyl
+    + cty
+    + hwy
+
+*mpg* data-frame document describes the format of each variable. Categorical data is one that doesn't have a logical ordering.
+```{r}
+head(mpg, 10)
+```
+
+***Q:** Map a continuous variable to color, size, and shape. How do these aesthetics behave differently for categorical vs. continuous variables?*
+
+When color is associated with a continuous variable, ggplot2 selects a single color and values are represented by varying the shade of the color from lighter to dark. On the other hand for categorical variable ggplot2 assign a unique color.
+
+```{r cyl-to-color}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = cyl)) + labs(title = "Scatterplot with number of cylinders as color")
+```
+
+When size is associated with a continuous variable, the size of the geometric point increases as the value of the variable. But, when a categorical variable is used for size ggplot2 randomly assigns a unique size and is not advisable.
+```{r cyl-to-size}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, size = cyl)) + labs(title = "Scatterplot with number of cylinders as size")
+```
+
+geom_point doesn't allow shape aesthetic to be associated with a continuous variable.
+
+***Q:** What happens if you map the same variable to multiple aesthetics?*
+
+ggplot2 works independently with each declared aesthetic and layer one above the other. In the example below cyl is associated with size and color aesthetics.
+```{r cyl-to-size and color}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, size = cyl, color = cyl)) + labs(title = "Scatterplot with number of cylinders as size and color")
+```
+
+***Q:** What does the stroke aesthetic do? What shapes does it work with?*
+
+Stroke aesthetic defines the thickness of the border of a shape.
+**Example:**
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy), shape=0, stroke=1) + labs(title = "Scatterplot showing how stroke works")
+```
+
+***Q:** What happens if you map an aesthetic to something other than a variable name, like aes(colour = displ < 5)?*
+
+When an aesthetic is mapped to something other than a raw variable, ggplot2 resolves the property and assign unique level for each distinct value in the outcome.
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = displ < 5)) + labs(title = "Scatterplot with color mapped to an equation")
+```
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = 'green')) + labs(title = "Scatterplot with color mapped value. But, the display color is not green")
+```
+
+###3.5.1 Exercises
+
+***Q:** Take the first faceted plot in this section and What are the advantages to using faceting instead of the colour aesthetic? What are the disadvantages? How might the balance change if you had a larger dataset?*
+
+```{r}
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy)) + 
+  facet_wrap(~ class, nrow = 2)
+```
+
+Faceting is effective because it splits the graph in to different compartments allowing user(s) to clearly distinguish and examin each section independently. Faceting comes handy especially when data in question is large. However when data is small, faceting would scatter the data and make it harder to examin.
+
+***Q:** Read ?facet_wrap. What does nrow do? What does ncol do? What other options control the layout of the individual panels? Why doesn’t facet_grid() have nrow and ncol argument?*
+
+*facet_wrap* wraps a 1d panels into 2d based on nrow and ncol values. nrow and ncol values define the grip or the dimensions of the table. nrow \* ncol should be => total number discrete values formula (~data) has. *facet_wrap* provides *scale* and *strip.position* to control individual layouts. In *facet_grid*  works on two variables, which define the grid dimensions.
+
+###3.6.1 Exercises
+
+***Q:** What geom would you use to draw a line chart? A boxplot? A histogram? An area chart? *
+
+1) *geom_line* is used for line chart.
+2) *geom_boxplot* is used for boxplot.
+3) *geom_histogram* is used for histogram.
+4) *geom_area* is used for area chart.
+
+***Q:** Run this code in your head and predict what the output will look like. Then, run the code in R and check your predictions.*
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+```
+
+***Q:** What does show.legend = FALSE do? What happens if you remove it? Why do you think I used it earlier in the chapter?*
+
+*show.legend = FALSE* will turn off the legend that explains the mapping between the aesthetic level and values. When the legend is turned off it is impossible to make the aesthetic level to a value in data-frame. legend is set to *FLASE* early in the chapter to show how group aesthetic works.
+
+```{r}
+ggplot(data = mpg) +
+   geom_point(mapping = aes(x = displ, y = hwy, color = class) , show.legend = FALSE ) + labs(title = "Scatterplot with color mapped to class and legend turned off")
+```
+
+***Q:** What does the se argument to geom_smooth() do?*
+
+se controls the display of confidence interval around smooth.
+
+***Q:** Will these two graphs look different? Why/why not? *
+
+The two graphs look identical, the only difference is that in former aesthetics and data are set at the global level. Whereas in later each geom declares the data and aesthetics.
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point() + 
+  geom_smooth()
+ggplot() + 
+  geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
+```
+
+***Q:** Recreate the R code necessary to generate the following graphs. *
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(size = 5) + 
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(size = 5) + 
+  geom_smooth(mapping = aes(group = drv), se = FALSE)
+```
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy, color = drv)) + 
+  geom_point(size = 5) + 
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = drv), size = 5) + 
+  geom_smooth(se = FALSE)
+```
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = drv), size = 5) + 
+  geom_smooth(mapping = aes(linetype = drv), se = FALSE)
+```
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+  geom_point(mapping = aes(color = drv), size = 5)
+```
+
+###3.7.1 Exercises
+
+***Q:** What does geom_col() do? How is it different to geom_bar()? *
+
+*geom_col* represents a bar chart for which x and y values can be drawn from the data. Where as in *geom_bar* height of the bar is trawn from the count of each group represented by x.
+
+```{r}
+ggplot(data = diamonds) + 
+   geom_col(mapping = aes(y = cut, x=color))
+```
+
