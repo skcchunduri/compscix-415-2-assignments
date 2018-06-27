@@ -40,7 +40,12 @@ ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
 
 ***Q:** What’s the default position adjustment for geom_boxplot()? Create a visualisation of the mpg dataset that demonstrates it.*
 
-**NOT ANSWERED**
+Default position object is dodge. 
+```{r}
+ggplot(data = mpg, aes(x = drv, y = hwy, colour = class)) +
+  geom_boxplot()
+```
+
 
 ###3.9.1 Exercises
 
