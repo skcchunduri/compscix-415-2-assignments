@@ -1,0 +1,154 @@
+---
+title: "“COMPSCIX 415.2 Homework 3"
+author: "Chunduri SriKeerthi Chandra"
+date: "Jun 25th 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r initilize, include=FALSE}
+library(tidyverse)
+library(nycflights13)
+data(mpg)
+```
+
+##**Data Visualisation/Transformation**
+
+###3.8.1 Exercises
+
+***Q:** What is the problem with this plot? How could you improve it?*
+
+The overlapping points are rounted and so it is hard to find how the data is distributed. We can fix it by adding jitter.
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_point(position = "jitter")
+```
+
+***Q:** What parameters to geom_jitter() control the amount of jittering?*
+
+*width* and *Height* parameters controll the amount of jittering in *geom_jitter()*.
+
+***Q:** Compare and contrast geom_jitter() with geom_count()*
+
+**NOT ANSWERED**
+
+***Q:** What’s the default position adjustment for geom_boxplot()? Create a visualisation of the mpg dataset that demonstrates it.*
+
+**NOT ANSWERED**
+
+###3.9.1 Exercises
+
+***Q:** What does labs() do? Read the documentation.*
+
+**labs()** help provide seld explanatory labels on x/y axis and for the title of the graph.
+
+***Q:** What does the plot below tell you about the relationship between city and highway mpg? Why is coord_fixed() important? What does geom_abline() do?*
+
+highway mileage and city mileage are proportional. As the city milage increases highway mileage increases. *coord_fixed* will enforce the specified ratio on the physical representation of data units on the axes. The default ratio = 1. *geom_abline* adds a reference lines to the plot.
+
+```{r}
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
+```
+
+###4.4 Exercises
+
+***Q:** Why does this code not work?*
+
+The initialized variable is *my_variable*. R doesn't know *my_var1able*. **1** should be replaced by **i**.
+
+***Q:** Tweak each of the following R commands so that they run correctly*
+
+Correct commands : 
+```{r}
+library(tidyverse)
+data("diamonds")
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+filter(mpg, cyl == 8)
+filter(diamonds, carat > 3)
+```
+
+
+###5.2.4 Exercises
+
+***Q:** Find all flights that *
+  *1.Had an arrival delay of two or more hours*
+```{r}
+filter(flights, arr_delay >= 2*60)
+```
+  
+  *2. Flew to Houston (IAH or HOU)*
+```{r}
+filter(flights, dest == "IAH" | dest == "HOU")
+```
+  *3. Were operated by United, American, or Delta*
+```{r}
+filter(flights, carrier %in% c("AA", "DL", "UA"))
+```
+  *4. Departed in summer (July, August, and September)*
+```{r}
+filter(flights, month %in% c(6, 7, 8))
+```
+
+  *5. Arrived more than two hours late, but didn’t leave late*
+```{r}
+filter(flights, dep_delay == 0, arr_delay > 2*60)
+```
+  
+  *6. Were delayed by at least an hour, but made up over 30 minutes in flight*
+```{r}
+filter(flights, dep_delay >= 60, arr_delay == (dep_delay - 30))
+```
+  
+  *7. Departed between midnight and 6am (inclusive)*
+```{r}
+filter(flights, dep_time <= 600)
+```
+  
+  ***Q:** How many flights have a missing dep_time? What other variables are missing? What might these rows represent?*
+```{r}
+depMissing <- filter(flights, is.na(dep_time))
+depMissing
+```
+
+flight data set has `r NROW(depMissing)` missing dep_time observations. It also has *'dep_delay'*, *'arr_time'*, *'arr_delay'* and *'air_time'*. These observations/rows represents scheduled flights that where cancelled.
+
+***Q:** Why is NA ^ 0 not missing? Why is NA | TRUE not missing? Why is FALSE & NA not missing? Can you figure out the general rule? (NA \* 0 is a tricky counterexample!)*
+
+**NOT ANSWERED**
+
+###  5.4.1 Exercises
+
+***Q:** Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights. *
+  1
+```{r}
+select(flights, dep_time, dep_delay, arr_time)
+```
+  2
+```{r}
+select(flights, dep_time, dep_delay:arr_time)
+```
+  3
+```{r}
+select(flights, -(year:day),-sched_dep_time,-(sched_arr_time:time_hour))
+```
+
+***Q:** What does the one_of() function do? Why might it be helpful in conjunction with this vector?*
+
+*One_of* function helps select the available columns from the table. Using vector to store all the possible column names to select will help reuseing.
+```{r}
+vars <- c("year", "month", "day", "dep_delay", "arr_delay")
+select(flights, one_of(vars))
+```
+
+
