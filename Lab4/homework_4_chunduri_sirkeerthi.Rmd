@@ -1,0 +1,249 @@
+---
+title: "“COMPSCIX 415.2 Homework 4"
+author: "Chunduri SriKeerthi Chandra"
+date: "Jul 3rd 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r initilize, include=FALSE}
+library(tidyverse)
+library(nycflights13)
+```
+
+##**Data munging and data wrangling**
+
+###5.6.7 Exercises
+
+***Q:** Come up with another approach that will give you the same output as not_cancelled %>% count(dest) and not_cancelled %>% count(tailnum, wt = distance) (without using count()).*
+
+```{r}
+not_cancelled <- flights %>%
+  filter(!is.na(dep_delay), !is.na(arr_delay))
+```
+
+Total number of flights not canceled for a destination can also be computed as
+```{r}
+not_cancelled %>% group_by(dest) %>% summarise(n())
+```
+
+Totla distance each flight flew can be computed as:
+
+```{r}
+not_cancelled %>% group_by(tailnum) %>% summarise(n = sum(distance))
+```
+
+***Q:** Look at the number of cancelled flights per day. Is there a pattern? Is the proportion of cancelled flights related to the average delay?*
+
+
+```{r}
+
+mutated_flights <- flights %>% group_by(year, month, day)  %>% mutate(canceled = (is.na(dep_delay) & is.na(arr_delay)))
+
+```
+
+Total number of canceled flights per day are:
+```{r}
+mutated_flights %>% summarise(canceled = sum(canceled))
+```
+
+Comparing average departure delay Vs average flight cancelation:
+```{r}
+(data <- mutated_flights %>% summarise( count = n(), canceled = mean(canceled, na.rm = TRUE), delay = mean(dep_delay, na.rm = TRUE)) %>% filter(count > 50))
+
+data %>% ggplot() + geom_point(aes(x = delay, y = canceled, color = count), position = "jitter")
+```
+
+
+From the plot above, It looks like more number of flights are canceled within the first 20 min of delay. Flight delays and cancelations are not related. 
+
+***Q:** What does the sort argument to count() do. When might you use it?*
+
+When *sort* is set to *TRUE* it will arrange the rows in the desending order of n, similar to arrange(desc(n)) verb.
+
+###10.5 Exercises
+
+***Q:** 1 How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame).*
+We can test to see if the object is a tibble like:
+```{r}
+is.tibble(flights)
+```
+
+Or we can display the object to tell if its a tibble. Tibbles have a refined print method that shows only the first 10 rows:
+```{r}
+flights
+```
+
+Or we can check the class of the object
+```{r}
+class(flights)
+```
+
+
+***Q:**2 Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration?*
+*df <- data.frame(abc = 1, xyz = "a")*
+*df$x*
+*df[, "xyz"]*
+*df[, c("abc", "xyz")]*
+
+Tibbles are strict when accessing columns using *$* or *[[]]*. Whereas *data.frames* match the nearest column name, as in this case *data.frame* doesn't have column **x**, but still displays *xyz* value.
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+
+Which is not the case with tibbel:
+```{r}
+df <- tibble(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+```
+
+And the tibble displays the column type which is more informative compared to nothing on *data.frames*.
+
+***Q:**3 If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?*
+
+We can use **[[]]** or **$** to read a variable contents from tibble.
+
+***Q:**6 What option controls how many additional column names are printed at the footer of a tibble?*
+
+*print()* function can be used to control the number of rows and number of columns to be displayed.
+*print()* takes variables *n* to control number of rown and *width* to control number of columns.
+
+###12.3.3 Exercises
+
+***Q:**2 Why does this code fail?*
+*table4a %>%*
+  *gather(1999, 2000, key = "year", value = "cases")*
+
+Column names 1999 and 2000 doesn't start with a letter, since they are non-syntactic names we have to encode them in backticks otherwise R takes them as range.
+
+correct way to transfer:
+```{r}
+table4a %>%
+  gather(`1999`, `2000`, key = "year", value = "cases")
+```
+
+***Q:**3 Why does spreading this tibble fail? How could you add a new column to fix the problem?*
+```{r error=TRUE}
+people <- tribble(
+  ~name,             ~key,    ~value,
+  #-----------------|--------|------
+  "Phillip Woods",   "age",       45,
+  "Phillip Woods",   "height",   186,
+  "Phillip Woods",   "age",       50,
+  "Jessica Cordero", "age",       37,
+  "Jessica Cordero", "height",   156
+)
+
+people %>% spread(key = key, value = value)
+```
+
+observations on row 1 and row 3 are duplicate for age, hence spread fails with *Error: Duplicate identifiers for rows (1, 3)* message.
+
+**Note**: Not quite sure how to get around this issue. Not answered.
+
+***Q:**4 Tidy the simple tibble below. Do you need to spread or gather it? What are the variables?*
+```{r}
+preg <- tribble(
+  ~pregnant, ~male, ~female,
+  "yes",     NA,    10,
+  "no",      20,    12
+)
+```
+
+We have to gather the male and female in to a colum. 
+
+```{r}
+preg %>% gather(male, female, key=gender, value=count)
+```
+
+###12.4.3 Exercises
+
+***Q:**1 What do the extra and fill arguments do in separate()? Experiment with the various options for the following two toy datasets.*
+
+*extra* argument can be used to control what happens when a split generates more than what is required number of values. And *fill* argument can be used to control how *NA* placed when a split generates less than the required number values.
+
+```{r}
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
+  #Drops the extra value silently
+  separate(x, c("one", "two", "three"), extra = "drop")
+
+tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% 
+  #Fills NA on the left instead of on the right(default)
+  separate(x, c("one", "two", "three"), fill = "left")
+
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
+  #Only splits at most lenght(into), that means "d,e,f,g" is split in to "d" and "e" and "f,g"
+  separate(x, c("one", "two", "three"), extra = "merge")
+
+```
+
+***Q:**2 Both unite() and separate() have a remove argument. What does it do? Why would you set it to FALSE?*
+
+*remove* argument can be used to retain the original column in the output data frame. The default value is *TRUE* which removes the original column, but when it is set to *FALSE* output data frame retains the original column.
+
+Example:
+
+```{r}
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
+  #Drops the extra value silently
+  separate(x, c("one", "two", "three"), extra = "drop", remove = FALSE)
+```
+
+### Data Import Exercises
+
+Follow these steps:
+- Download the baby_names.txt file from Canvas which is in the Homework 4 assignment section.
+- Load this file into R correctly and take a glimpse of the output.
+- Export this file as a csv file and call it ‘baby_names.csv’.
+- Reload the baby_names.csv file and take another glimpse.
+- Show all of your code and the output.
+
+```{r}
+#Loading baby_names.txt
+filePath <- "/Users/srchundu/UCBExtension/DataScienceIntro/compscix-415-2-assignments/Lab4/baby_names.txt"
+
+#File is a "|" seperated
+fileData <- read_delim(file = filePath, delim = "|")
+
+#Glimpse at file content
+fileData
+
+# Write file contents back to CSV file
+csvFilePath <- "/Users/srchundu/UCBExtension/DataScienceIntro/compscix-415-2-assignments/Lab4/baby_names.csv"
+fileData %>% write_csv(path = csvFilePath)
+
+# Read back baby names from CSV file
+fileData2 <- read_csv(file = csvFilePath)
+
+#Glimpse at file content
+fileData2
+```
+
+### Challenge Question 5.6.7 Exercise
+
+***Q:**5 Which carrier has the worst delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about flights %>% group_by(carrier, dest) %>% summarise(n()))*
+
+I couldn't derive the relation between bad airports and bad carriers
+
+Carriers with worst delays:
+```{r}
+delayed_flights <- flights %>% filter((!is.na(dep_delay) & dep_delay > 0) | (!is.na(arr_delay) & arr_delay > 0));
+delayed_flights %>% group_by(carrier) %>% summarise(total = n()) %>% arrange(desc(total))
+```
+
+Airports with worst delays:
+```{r}
+delayed_flights <- flights %>% filter((!is.na(dep_delay) & dep_delay > 0) | (!is.na(arr_delay) & arr_delay > 0))
+delayed_flights %>% group_by(dest) %>% summarise(total = n()) %>% arrange(desc(total))
+```
+
