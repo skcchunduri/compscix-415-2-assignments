@@ -1,0 +1,154 @@
+---
+title: "COMPSCIX 415.2 Homework 6"
+author: "Chunduri SriKeerthi Chandra"
+date: "July 17th 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(mosaicData)
+library(forcats)
+data(Whickham)
+```
+
+###Exercise 1
+
+#### 1Q) What variables are in this data set? 
+
+The data-set captures **age**, **smoker** and **outcome**(mortality) variables on women in Whickham.
+
+#### 2Q) How many observations are there and what does each represent?
+
+There are 1314 observations on women in Whickham. Each observation captures the age at the time of first survey, smoker (a factor yes/no), and outcome (mortality) status after 20 years of the first survey.
+
+#### 3Q) Create a table (use the R code below as a guide) and a visualization of the relationship between smoking status and outcome, ignoring age. What do you see? Does it make sense?
+
+```{r}
+(modData <- Whickham %>% count(smoker , outcome))
+modData %>% 
+  mutate(case = case_when(smoker == 'No' & outcome == 'Alive' ~ 'Non-smoker Alive',
+                         smoker == 'Yes' & outcome == 'Alive' ~ 'Smoker Alive',
+                         smoker == 'No' & outcome == 'Dead' ~ 'Non-smoker Dead',
+                         smoker == 'Yes' & outcome == 'Dead' ~ 'Smoker Dead')) %>% 
+   ggplot(mapping = aes(x = case, weight = n)) + geom_bar()
+```
+
+
+It doesn't make sense. The data shows that more number of non-smokers are dead compared to smokers.
+
+#### 4Q) Recode the age variable into an ordered factor with three categories: age <= 44, age > 44 & age <= 64, and age > 64. Now, recreate visualization from above, but facet on your new age factor. What do you see? Does it make sense?
+
+```{r}
+Whickham %>%
+  mutate( age_grp = case_when(age <= 44 ~ 'age <=44 ',
+                              age > 44 & age <= 64 ~ 'age > 44 & age <= 64',
+                              age > 64 ~ 'age > 64')) %>%
+  count(smoker, outcome, age_grp) %>% 
+      mutate(case = case_when(smoker == 'No' & outcome == 'Alive' ~ 'Non-smoker Alive',
+                         smoker == 'Yes' & outcome == 'Alive' ~ 'Smoker Alive',
+                         smoker == 'No' & outcome == 'Dead' ~ 'Non-smoker Dead',
+                         smoker == 'Yes' & outcome == 'Dead' ~ 'Smoker Dead')) %>% 
+          ggplot(mapping = aes(x = case, weight = n, fill = outcome)) +
+            geom_bar() +
+              coord_flip() +
+                facet_wrap( ~ age_grp, nrow = 2)
+```
+
+For age groups "age <= 44" and "age > 44 & age <= 64" more smokers are dead compared to non-smokers.
+
+### Exercise 2
+
+#### 1Q) Generate a random sample of size n = 10000 from a gamma(1,2) distribution and plot a histogram or density curve. Use the code below to help you get your sample.
+
+```{r}
+n <- 10000
+# look at ?rgamma to read about this function
+gamma_samp <- tibble(x = rgamma(n, shape = 1, scale = 2))
+gamma_samp %>% ggplot(mapping = aes(x = x)) + geom_histogram()
+```
+
+#### 2Q) What is the mean and standard deviation of your sample? They should both be close to 2 because for a gamma distribution: mean = shape x scale and variance = shape x scaleˆ2
+
+```{r}
+gamma_samp %>% summarise( mean = mean(x), std_devation = sd(x))
+```
+
+#### 3Q)  Pretend the distribution of our population of data looks like the plot above. Now take a sample of size n = 30 from a Gamma(1,2) distribution, plot the histogram or density curve, and calculate the mean and standard deviation.
+
+```{r}
+gamma_samp_2 <- tibble(x = rgamma(30, shape = 1, scale = 2))
+
+# Histogram of the new Sample
+gamma_samp_2 %>% ggplot(mapping = aes(x = x)) + geom_histogram()
+
+# Mean and Standard deviation of the new sample
+gamma_samp_2 %>% summarise( mean = mean(x), std_devation = sd(x))
+```
+
+#### 4Q) Take a sample of size n = 30, again from the Gamma(1,2) distribution, calculate the mean, and assign it to a vector named mean_samp. Repeat this 10000 times!!!! The code below might help.
+
+```{r}
+# create a vector with 10000 NAs
+mean_samp <- rep(NA, 10000)
+# start a loop
+for(i in 1:10000) {
+g_samp <- rgamma(30, shape = 1, scale = 2)
+mean_samp[i] <- mean(g_samp)
+}
+# Convert vector to a tibble
+(mean_samp <- tibble(mean_samp))
+```
+
+#### 5Q) Make a histogram of your collection of means from above (mean_samp)
+
+```{r}
+# Histogram of collection of means
+mean_samp %>% ggplot(mapping = aes(x = mean_samp)) + geom_histogram()
+```
+
+#### 6Q) Calculate the mean and standard deviation of all of your sample means.
+
+```{r}
+# Mean of mean sample
+
+(mean <- mean(mean_samp$mean_samp))
+
+# standard deviation of sample
+(sd <- sd(mean_samp$mean_samp))
+```
+
+#### 7Q) Did anything surprise you about your answers to #6?
+
+*NOTE* not answered.
+
+#### 8Q) According to the Central Limit Theorem, the mean of your sampling distribution should be very close to 2, and the standard deviation of your sampling distribution should be close to √σ/n = √2/30 = 0.365. Repeat #4-#6, but now with a sample of size n = 300 instead. Do your results match up well with the theorem?
+
+Yes, the results match up with the theorem.
+```{r}
+# create a vector with 10000 NAs
+mean_samp <- rep(NA, 10000)
+# start a loop
+for(i in 1:10000) {
+g_samp <- rgamma(300, shape = 1, scale = 2)
+mean_samp[i] <- mean(g_samp)
+}
+# Convert vector to a tibble
+(mean_samp <- tibble(mean_samp))
+
+# Histogram of collection of means for sample size 300
+mean_samp %>% ggplot(mapping = aes(x = mean_samp)) + geom_histogram()
+
+# Mean of mean sample size 300
+(mean <- mean(mean_samp$mean_samp))
+
+# standard deviation of sample size 300
+(sd <- sd(mean_samp$mean_samp))
+```
+
