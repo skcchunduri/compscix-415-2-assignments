@@ -1,0 +1,98 @@
+---
+title: "COMPSCIX 415.2 Homework 7"
+author: "Chunduri SriKeerthi Chandra"
+date: "July 24th 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(broom)
+```
+
+###Exercise
+
+#### Load the train.csv dataset into R. How many observations and columns are there?
+
+There are 81 variables and 1,460 observations.
+
+```{r}
+filePath <- "/Users/srchundu/UCBExtension/DataScienceIntro/compscix-415-2-assignments/Lab7/train.csv"
+trainData <- read_csv(file = filePath)
+```
+
+#### Normally at this point you would spend a few days on EDA, but for this homework we will do some very basic EDA and get right to fitting some linear regression models
+
+Our target will be SalePrice.
+
+  * **Visualize the distribution of SalePrice.**
+```{r}
+trainData %>% ggplot(mapping = aes(x = SalePrice)) + geom_histogram()
+```
+  
+  * **Visualize the covariation between SalePrice and Neighborhood.**
+```{r}
+  trainData %>% ggplot(mapping = aes(x = Neighborhood, y = SalePrice)) + geom_boxplot() + coord_flip()
+```
+  
+  * **Visualize the covariation between SalePrice and OverallQual.**
+
+```{r}
+trainData %>% ggplot(mapping = aes(x = OverallQual, y = SalePrice)) + geom_point()
+```
+
+#### Our target is called SalePrice. First, we can fit a simple regression model consisting of only the intercept (the average of SalePrice). Fit the model and then use the broom package to
+
+** NOTE : ** not answered. Not sure how to define a model which has just the intercept.
+
+#### Now fit a linear regression model using GrLivArea, OverallQual, and Neighborhood as the features. Don’t forget to look at data_description.txt to understand what these variables mean. Ask yourself these questions before fitting the model:
+
+  * **What kind of relationship will these features have with our target?**
+  OverallQual and Neighborhood should have a direct impact on the final saleprice. However, GrLiveArea might not be.
+  
+  * **Can the relationship be estimated linearly?**
+  Yes, we can extablish a linear relationship.
+  
+  * **Are these good features, given the problem we are trying to solve?**
+  Yes, OverallQual and Neighborhood are good feature. But, GrLivArea might not be.
+  
+  #### After fitting the model, output the coefficients and the R-squared using the broom package
+  
+```{r}
+model <- lm(formula = SalePrice ~ OverallQual + Neighborhood + GrLivArea, data = trainData)
+tidy(model)
+glance(model)
+```
+  
+  * **How would you interpret the coefficients on GrLivArea and OverallQual?**
+  When everything else (features) is constant. Increase in one square feet area in "GrLivArea", "SalePrice" increases by \$55.5645. Similarly, when everything else is (features) constant, an increase in 1 unit of "OverallQual" increases "SalePrice" by \$20951.
+  
+  * **How would you interpret the coefficient on NeighborhoodBrkSide?**
+  Neighborhood coefficients are relative to "Bloomington Heights" of Ames city. So, compared to "Bloomington Heights", SalePrice in "Brookside" are $13025.45 less.
+  
+  * **Are the features significant?**
+  Yes, these features are significant. The **p.value** for all the features are near to *Zero*.
+  
+  * **Are the features practically significant?**
+  They are practically significiant. However, except GrLivArea. one square feet change in "GrLivArea" affects the saleprice by only $55.56.
+  
+  * **Is the model a good fit?**
+  No, model doesn't consider other features like "YearBuilt", "HouseStyle", "LotArea" and many more.
+  
+#### One downside of the linear model is that it is sensitive to unusual values because the distance incorporates a squared term. Fit a linear model to the simulated data below (use y as the target and x as the feature), and look at the resulting coefficients and R-squared. Rerun it about 5-6 times to generate different simulated datasets. What do you notice about the model’s coefficient on x and the R-squared values?
+```{r}
+sim1a <- tibble(x = rep(1:10, each = 3), y = x * 1.5 + 6 + rt(length(x), df = 2))
+model <- lm(formula = y ~ x, data = sim1a)
+tidy(model)
+glance(model)
+```
+  
+coefficient of X and Rsquared values under different runs vary a lot.
+  
+  
