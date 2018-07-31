@@ -1,0 +1,56 @@
+---
+title: "COMPSCIX 415.2 Homework 8"
+author: "Chunduri SriKeerthi Chandra"
+date: "July 31th 2018"
+output: 
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r include=FALSE}
+library(tidyverse)
+library(jsonlite)
+library(leaflet)
+library(ggmap)
+```
+
+####Create an R function that takes as its input argument a city name and creates a slippy leaflet map as its output. The leaflet map should already be zoomed in onto the city that is input into the function and should contain markers for each of the bike station locations, and each marker should show the number of bikes when hovered over by the mouse cursor (see example below). Feel free to add your own flourishes to the map. On your final html document I want to see the code and one slippy map for any of the given cities. Do not attempt to put multiple slippy maps on your html file - it may break. Name your function map_it. To pull the data, you will use the fromJSON function (set the flatten argument to TRUE).
+
+```{r eval=FALSE}
+### You can use this vector of city names to test your function
+cities <- c('Luxembourg', 'Dublin', 'Brisbane', 'Seville', 'Stockholm', 'Ljubljana')
+```
+
+
+```{r}
+#A function called map_it
+map_it <- function(city) {
+  url <- paste0("https://api.jcdecaux.com/vls/v1/stations?contract=",city,"&apiKey=a8e7110a9decbfa3d1621ca48d999d58435c56f9")
+  df_api = jsonlite::fromJSON(url)
+  # Make sure we have data
+  if(length(df_api) > 0) {
+    # Geo co-ordinates of the city in question
+    city_geo <- geocode(city)
+    # to flat out positions
+    position.lng = df_api$position$lng
+    position.lat = df_api$position$lat
+    df_api <- cbind(df_api %>% select(-position), position.lng, position.lat) %>%
+      # Create label
+                mutate(label = paste0("@",name," --> Total bike stands :",bike_stands," and Available:",available_bikes))
+    #Plot a map
+    leaflet() %>% 
+      setView(lng = city_geo$lon, lat = city_geo$lat, zoom = 13) %>% 
+        addTiles() %>%
+          addMarkers(lng = ~position.lng, lat = ~position.lat, label = ~label, data = df_api)
+  }
+}
+```
+
+```{r}
+map_it('Ljubljana')
+```
+
